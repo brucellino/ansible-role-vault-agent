@@ -1,2 +1,23 @@
 ---
 # defaults file for ansible-role-template
+prerequisite_packages:
+  - git
+  - gccgo-go
+vault_arch:
+  aarch64: arm64
+  armv6l: arm
+hashi_releases_url: https://releases.hashicorp.com
+vault_version: 1.11.3
+vault_zip_url: "{{ hashi_releases_url }}/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_{{ vault_arch[ansible_architecture] }}.zip" # noqa yaml
+vault_agent_bin_dest: /usr/local/bin
+vault_server_url: http://vault.service.consul:8200
+auto_auth: approle
+approle:
+  mount: hashiatho.me
+  role: nomad-tls
+aws:
+  mount: ''
+  role: ''
+cert:
+  mount: ''
+  role: ''

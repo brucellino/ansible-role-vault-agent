@@ -1,2 +1,75 @@
 ---
 # tasks file for ansible-role-template
+- name: Get Vault for Vault agent
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ vault_zip_url }}"
+    dest: "{{ vault_agent_bin_dest }}"
+    creates: "{{ vault_agent_bin_dest }}/vault"
+    mode: 0777
+    owner: root
+    group: root
+
+- name: Ensure Vault configuration directory
+  ansible.builtin.file:
+    path: /etc/vault.d
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+
+# - name: Get Go
+#   package:
+#     name: "{{ item }}"
+#     state: present
+#     use: auto
+#   loop:
+#     - gccgo-go
+#     - git
+# - name: Get hclfmt
+#   command:
+#     argv:
+#       - go
+#       - get
+#       - github.com/fatih/hclfmt
+#     creates: /usr/local/bin/hclfmt
+#   environment:
+#     GOPATH: /usr/local
+
+- name: Template vault agent configuration
+  ansible.builtin.template:
+    src: etc/vault.d/vault-agent.hcl.j2
+    dest: /etc/vault.d/vault-agent.hcl
+    mode: 0644
+    owner: root
+    group: root
+    block_start_string: "[%"
+    block_end_string: "%]"
+    variable_start_string: "[["
+    variable_end_string: "]]"
+    # validate: hclfmt %s
+
+- name: AppRole Auth Auth
+  block:
+    - name: Lookup Role ID
+      ansible.builtin.uri:
+        url: "{{ vault_server_url }}/v1/auth/{{ approle.mount }}/role/{{ approle.role }}/role-id"
+        dest: /etc/vault.d/approle.json
+
+        method: GET
+        return_content: true
+        status_code: [200]
+        headers:
+          X-Vault-Token: "{{ lookup('env', 'VAULT_TOKEN') }}"
+        http_agent: ansible-httpget
+      register: response
+
+    - name: Deliver Role ID
+      ansible.builtin.copy:
+        dest: /etc/vault.d/roleid
+        content: "{{ response.json.data.role_id }}"
+        backup: true
+        mode: 0644
+        owner: root
+        group: root
+  when: auto_auth == 'approle'

@@ -15,31 +15,44 @@ status badge
 -->
 [![semantic-release: angular](https://img.shields.io/badge/semantic--release-conventional-e10079?logo=semantic-release)](https://github.com/semantic-release/semantic-release)
 
-# Ansible role XYZ
+# Ansible role Vault Agent
 
-<!-- A brief description of the role goes here. -->
+An Ansible role to provision Vault Agent to nodes.
+Most of the configuration assumes a static deployment, aside an existing Vault cluster.
+Auto auth is only implemented for approle initially.
 
 ## Requirements
 
-<!-- Any pre-requisites that may not be covered by Ansible itself or the role should
-be mentioned here. For instance, if the role uses the EC2 module, it may be a
-good idea to mention in this section that the boto package is required. -->
+- Vault server
+- If using auto_auth with approle: client token capable of looking up the role id on the approle
 
 ## Role Variables
 
-<!-- A description of the settable variables for this role should go here, including
-any variables that are in defaults/main.yml, vars/main.yml, and any variables
-that can/should be set via parameters to the role. Any variables that are read
-from other roles and/or the global scope (ie. hostvars, group vars, etc.) should
-be mentioned here as well. -->
+See `defaults/main.yml`
 
 ## Dependencies
 
-<!-- A list of other roles hosted on Galaxy should go here, plus any details in
-regards to parameters that may need to be set for other roles, or variables that
-are used from other roles. -->
-
 ## Example Playbook
+
+```yaml
+
+---
+- name: Preflight
+  hosts: localhost
+  tasks:
+    - name: Check Vault token
+      ansible.builtin.assert:
+        that: lookup('env', 'VAULT_TOKEN') != ''
+        fail_msg: No Vault token set 📪
+        success_msg: Vault token present 🔐
+        quiet: False
+- name: Deploy vault agent
+  hosts: pis,!vault_servers
+  become: true
+  roles:
+    - ansible-role-vault-agent
+
+```
 
 ## License
 
@@ -47,5 +60,4 @@ MIT
 
 ## Author Information
 
-<!-- An optional section for the role authors to include contact information, or a
-website (HTML is not allowed). -->
+Bruce Becker <brucellino@hey.com> @brucellino <https://www.brucellino.com>

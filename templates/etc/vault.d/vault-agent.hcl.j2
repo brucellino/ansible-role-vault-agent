@@ -1,0 +1,43 @@
+pid_file = "./pidfile"
+
+vault {
+  address = "http://vault.service.consul:8200"
+  retry {
+    num_retries = 5
+  }
+}
+
+auto_auth {
+  method {
+    type = "approle"
+    mount_path = "auth/hashiatho.me"
+     config = {
+      role_id_file_path = "/etc/vault_roleid"
+      remove_secret_id_file_after_reading = false
+      role = "consul-secrets"
+    }
+  }
+
+  sink {
+    type = "file"
+    wrap_ttl = "30m"
+    config = {
+      path = "/home/consul/.wrapped_token"
+    }
+  }
+}
+
+cache {
+  use_auto_auth_token = true
+}
+
+listener "tcp" {
+  address = "127.0.0.1:8100"
+  tls_disable = true
+}
+
+
+template {
+  source = "/etc/nomad.d/ca.ctmpl"
+  destination = "/etc/nomad.d/ca.pem"
+}

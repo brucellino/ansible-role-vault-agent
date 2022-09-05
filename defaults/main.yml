@@ -15,9 +15,15 @@ auto_auth: approle
 approle:
   mount: hashiatho.me
   role: nomad-tls
+  role_id_file_path: /etc/vault.d/roleid
 aws:
   mount: ''
   role: ''
 cert:
   mount: ''
   role: ''
+
+vault_agent_templates:
+  - source: etc/vault.d/nomad-ca.ctmpl
+    template_source: /etc/vault.d/nomad-ca.ctmpl
+    destination: /etc/nomad.d/ca.pem

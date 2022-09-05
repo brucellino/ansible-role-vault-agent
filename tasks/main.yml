@@ -73,3 +73,13 @@
         owner: root
         group: root
   when: auto_auth == 'approle'
+
+- name: Copy Vault Agent templates
+  ansible.builtin.copy:
+    dest: "{{ item.template_source }}"
+    src: "{{ item.source }}"
+    backup: true
+    mode: 0644
+    owner: root
+    group: root
+  loop: "{{ vault_agent_templates }}"

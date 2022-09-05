@@ -9,13 +9,16 @@ vault {
 
 auto_auth {
   method {
-    type = "approle"
-    mount_path = "auth/hashiatho.me"
-     config = {
-      role_id_file_path = "/etc/vault_roleid"
+    [% if auto_auth == 'approle' -%]
+    type       = "approle"
+    mount_path = "auth/[[ approle.mount ]]"
+    config = {
+      role_id_file_path                   = "[[ approle.role_id_file_path ]]"
       remove_secret_id_file_after_reading = false
-      role = "consul-secrets"
+      role                                = "[[ approle.role ]]"
     }
+    [% endif %]
+
   }
 
   sink {
@@ -36,8 +39,11 @@ listener "tcp" {
   tls_disable = true
 }
 
+[% for t in vault_agent_templates %]
 
 template {
-  source = "/etc/nomad.d/ca.ctmpl"
-  destination = "/etc/nomad.d/ca.pem"
+  source = "[[ t.template_source ]]"
+  destination = "[[ t.destination ]]"
 }
+
+[% endfor %]

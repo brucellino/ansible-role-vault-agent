@@ -1,0 +1,3 @@
+{{ with pkiCert "[[ pki_mount ]]/issue/[[ pki_role ]]" "common_name=[[ ansible_hostname ]].node.consul" }}
+{{ .Data.issuing_ca }}
+{{ end }}

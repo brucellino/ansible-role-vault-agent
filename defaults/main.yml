@@ -11,10 +11,11 @@ vault_version: 1.11.3
 vault_zip_url: "{{ hashi_releases_url }}/vault/{{ vault_version }}/vault_{{ vault_version }}_linux_{{ vault_arch[ansible_architecture] }}.zip" # noqa yaml
 vault_agent_bin_dest: /usr/local/bin
 vault_server_url: http://vault.service.consul:8200
+vault_config_dir: /etc/vault.d
 auto_auth: approle
 approle:
   mount: hashiatho.me
-  role: nomad-tls
+  role: nomad-servers
   role_id_file_path: /etc/vault.d/roleid
 aws:
   mount: ''
@@ -22,8 +23,15 @@ aws:
 cert:
   mount: ''
   role: ''
-
+pki_mount: pki_hah_int
+pki_role: hah_int_role
 vault_agent_templates:
-  - source: etc/vault.d/nomad-ca.ctmpl
-    template_source: /etc/vault.d/nomad-ca.ctmpl
+  - source: etc/vault.d/ca.ctmpl.j2
+    template_source: /etc/vault.d/ca.ctmpl
     destination: /etc/nomad.d/ca.pem
+  - source: etc/vault.d/cert.ctmpl.j2
+    template_source: /etc/vault.d/cert.ctmpl
+    destination: /etc/nomad.d/cert.pem
+  - source: etc/vault.d/key.ctmpl.j2
+    template_source: /etc/vault.d/key.ctmpl
+    destination: /etc/nomad.d/key.pem

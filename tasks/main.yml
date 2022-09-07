@@ -12,7 +12,7 @@
 
 - name: Ensure Vault configuration directory
   ansible.builtin.file:
-    path: /etc/vault.d
+    path: "{{ vault_config_dir }}"
     state: directory
     mode: 0700
     owner: root
@@ -39,7 +39,7 @@
 - name: Template vault agent configuration
   ansible.builtin.template:
     src: etc/vault.d/vault-agent.hcl.j2
-    dest: /etc/vault.d/vault-agent.hcl
+    dest: "{{ vault_config_dir }}/vault-agent.hcl"
     mode: 0644
     owner: root
     group: root
@@ -54,7 +54,7 @@
     - name: Lookup Role ID
       ansible.builtin.uri:
         url: "{{ vault_server_url }}/v1/auth/{{ approle.mount }}/role/{{ approle.role }}/role-id"
-        dest: /etc/vault.d/approle.json
+        dest: "{{ vault_config_dir }}/approle.json"
 
         method: GET
         return_content: true
@@ -66,7 +66,38 @@
 
     - name: Deliver Role ID
       ansible.builtin.copy:
-        dest: /etc/vault.d/roleid
+        dest: "{{ vault_config_dir }}/roleid"
+        content: "{{ response.json.data.role_id }}"
+        backup: true
+        mode: 0644
+        owner: root
+        group: root
+  # When the service is not resolvable via DNS, get it from consul directly
+  rescue:
+    - name: Get Vault service address from Consul
+      ansible.builtin.uri:
+        url: http://localhost:8500/v1/catalog/service/vault
+        method: GET
+        return_content: true
+      register: vault_address
+    # - name: Debug vault_address
+    #   debug:
+    #     var: vault_address
+    - name: Lookup Role ID
+      ansible.builtin.uri:
+        url: "http://{{ vault_address.json[0].Address }}:8200/v1/auth/{{ approle.mount }}/role/{{ approle.role }}/role-id"
+        dest: "{{ vault_config_dir }}/approle.json"
+        method: GET
+        return_content: true
+        status_code: [200]
+        headers:
+          X-Vault-Token: "{{ lookup('env', 'VAULT_TOKEN') }}"
+        http_agent: ansible-httpget
+      register: response
+
+    - name: Deliver Role ID
+      ansible.builtin.copy:
+        dest: "{{ vault_config_dir }}/roleid"
         content: "{{ response.json.data.role_id }}"
         backup: true
         mode: 0644
@@ -75,11 +106,34 @@
   when: auto_auth == 'approle'
 
 - name: Copy Vault Agent templates
-  ansible.builtin.copy:
+  ansible.builtin.template:
     dest: "{{ item.template_source }}"
     src: "{{ item.source }}"
+    block_start_string: "[%"
+    block_end_string: "%]"
+    variable_start_string: "[["
+    variable_end_string: "]]"
     backup: true
     mode: 0644
     owner: root
     group: root
   loop: "{{ vault_agent_templates }}"
+
+- name: Add Vault Agent systemd unit
+  ansible.builtin.template:
+    src: etc/systemd/system/vault-agent.service.j2
+    dest: /etc/systemd/system/vault-agent.service
+    mode: 0644
+    owner: root
+    group: root
+    trim_blocks: true
+    lstrip_blocks: true
+    # validate: systemd-analyze verify %s
+  notify: enable vault-agent
+
+- name: Enable Vault Agent service
+  ansible.builtin.systemd:
+    name: vault-agent
+    state: started
+    enabled: true
+    daemon_reload: true

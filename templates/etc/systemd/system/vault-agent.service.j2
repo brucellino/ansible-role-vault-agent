@@ -1,0 +1,25 @@
+[Unit]
+Description=Vault Agent
+After=consul.service
+ConditionFileNotEmpty=/etc/vault.d/vault-agent.hcl
+
+[Service]
+Type=Notify
+User=root
+Group=root
+KillMode=process
+KillSignal=SIGINT
+Environment=VAULT_ADDR={{ vault_server_url }}
+Environment=VAULT_SKIP_VERIFY=true
+ExecStart={{ vault_agent_bin_dest }}/vault agent -config {{ vault_config_dir }}/vault-agent.hcl
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=2
+StartLimitBurst=3
+StartLimitIntervalSec=10
+LimitNOFILE=65536
+StandardOutput=append:/var/log/vault-agent.log
+StandardError=append:/var/log/vault-agent.log
+
+[Install]
+WantedBy=multi-user.target

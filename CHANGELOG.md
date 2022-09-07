@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/brucellino/ansible-role-vault-agent/compare/v1.1.0...v1.2.0) (2022-09-07)
+
+
+### Features
+
+* **templates:** add experimental pki secret template ([d2fb282](https://github.com/brucellino/ansible-role-vault-agent/commit/d2fb28200348f717759243033d817e7f2e416c8c))
+
 # [1.1.0](https://github.com/brucellino/ansible-role-vault-agent/compare/v1.0.0...v1.1.0) (2022-09-05)
 
 

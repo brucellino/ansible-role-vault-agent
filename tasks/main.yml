@@ -1,5 +1,11 @@
 ---
 # tasks file for ansible-role-template
+- name: Acquire a lock on Consul
+  community.general.consul_kv:
+    state: acquire
+    key: ansible/role/vault-agent/execute
+    session: execute
+
 - name: Get Vault for Vault agent
   ansible.builtin.unarchive:
     remote_src: true
@@ -18,24 +24,6 @@
     owner: root
     group: root
 
-# - name: Get Go
-#   package:
-#     name: "{{ item }}"
-#     state: present
-#     use: auto
-#   loop:
-#     - gccgo-go
-#     - git
-# - name: Get hclfmt
-#   command:
-#     argv:
-#       - go
-#       - get
-#       - github.com/fatih/hclfmt
-#     creates: /usr/local/bin/hclfmt
-#   environment:
-#     GOPATH: /usr/local
-
 - name: Template vault agent configuration
   ansible.builtin.template:
     src: etc/vault.d/vault-agent.hcl.j2
@@ -48,6 +36,19 @@
     variable_start_string: "[["
     variable_end_string: "]]"
     # validate: hclfmt %s
+
+- name: Ensure we can look up consul services
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    state: present
+    line: "nameserver 127.0.0.53"
+    insertbefore: "^.*nameserver 100.*$"
+    create: false
+    backup: true
+    firstmatch: true
+    mode: 0644
+    owner: root
+    group: root
 
 - name: AppRole Auth Auth
   block:

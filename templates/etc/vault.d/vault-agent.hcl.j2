@@ -28,6 +28,12 @@ auto_auth {
       path = "/tmp/.wrapped_token"
     }
   }
+  sink {
+    type = "file"
+    config = {
+      path = "/tmp/sink_file_unwrapped.txt"
+    }
+  }
 }
 
 cache {

@@ -1,10 +1,10 @@
 [Unit]
 Description=Vault Agent
 After=consul.service
-ConditionFileNotEmpty=/etc/vault.d/vault-agent.hcl
+ConditionFileNotEmpty=/etc/vault-agent.d/vault-agent.hcl
 
 [Service]
-Type=Notify
+Type=simple
 User=root
 Group=root
 KillMode=process

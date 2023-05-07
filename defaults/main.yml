@@ -15,7 +15,7 @@ vault_config_dir: /etc/vault-agent.d
 auto_auth: approle
 approle:
   mount: hashiatho.me
-  role: nomad-read
+  role: catch-all
   role_id_file_path: /etc/vault-agent.d/roleid
 aws:
   mount: ''

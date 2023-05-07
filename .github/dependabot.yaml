@@ -1,0 +1,15 @@
+---
+version: 2
+updates:
+  - directory: ".github/"
+    open-pull-requests-limit: 5
+    package-ecosystem: "github-actions"
+    rebase-strategy: auto
+    schedule:
+      timezone: "05:00 UTC"
+      interval: weekly
+
+  - directory: "/"
+    package-ecosystem: "npm"
+    schedule:
+      interval: weekly

@@ -6,3 +6,8 @@
     state: reloaded
     enabled: true
     daemon_reload: true
+
+- name: Ensure Vault Agent Service
+  ansible.builtin.service:
+    name: vault-agent
+    state: started

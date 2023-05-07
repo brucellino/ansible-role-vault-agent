@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/brucellino/ansible-role-vault-agent/compare/v1.2.1...v1.2.2) (2023-05-07)
+
+
+### Bug Fixes
+
+* **service:** remove unnecessary parameter in service ([#3](https://github.com/brucellino/ansible-role-vault-agent/issues/3)) ([1bb7de4](https://github.com/brucellino/ansible-role-vault-agent/commit/1bb7de4daa498dfd8dbb3bbfaca048cdcf0d7033))
+
 ## [1.2.1](https://github.com/brucellino/ansible-role-vault-agent/compare/v1.2.0...v1.2.1) (2023-05-05)
 
 

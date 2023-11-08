@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/brucellino/ansible-role-vault-agent/compare/v1.2.2...v1.2.3) (2023-11-08)
+
+
+### Bug Fixes
+
+* **tasks:** install new vault if not present ([#10](https://github.com/brucellino/ansible-role-vault-agent/issues/10)) ([8439999](https://github.com/brucellino/ansible-role-vault-agent/commit/84399998b03aafbe50d1d79fb3198fe1bac5e49c))
+
 ## [1.2.2](https://github.com/brucellino/ansible-role-vault-agent/compare/v1.2.1...v1.2.2) (2023-05-07)
 
 

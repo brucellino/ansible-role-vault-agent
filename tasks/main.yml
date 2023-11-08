@@ -1,13 +1,19 @@
 ---
+- name: Check Vault version
+  ansible.builtin.command: vault -version
+  register: installed_vault_version
+  changed_when: false
+
 - name: Get Vault for Vault agent
   ansible.builtin.unarchive:
     remote_src: true
     src: "{{ vault_zip_url }}"
     dest: "{{ vault_agent_bin_dest }}"
-    creates: "{{ vault_agent_bin_dest }}/vault"
-    mode: 0777
+    mode: "0777"
     owner: root
     group: root
+  when: vault_version not in installed_vault_version.stdout
+
 
 - name: Ensure Vault configuration directory
   ansible.builtin.file:
@@ -30,26 +36,13 @@
     variable_end_string: "]]"
     # validate: hclfmt %s
 
-- name: Ensure we can look up consul services
-  ansible.builtin.lineinfile:
-    path: /etc/resolv.conf
-    state: present
-    line: "nameserver 127.0.0.53"
-    insertbefore: "^.*nameserver 100.*$"
-    create: false
-    backup: true
-    firstmatch: true
-    mode: 0644
-    owner: root
-    group: root
-
 - name: AppRole Auth Auth
   block:
     - name: Lookup Role ID
       become: false
       ansible.builtin.uri:
         url: "{{ lookup('env', 'VAULT_ADDR') }}/v1/auth/{{ approle.mount }}/role/{{ approle.role }}/role-id"
-        dest: "{{ vault_config_dir }}/approle.json"
+        dest: "/tmp/approle.json"
         method: GET
         return_content: true
         status_code: [200]
@@ -64,24 +57,24 @@
         dest: "{{ vault_config_dir }}/roleid"
         content: "{{ response.json.data.role_id }}"
         backup: true
-        mode: 0644
+        mode: "0644"
         owner: root
         group: root
   # When the service is not resolvable via DNS, get it from consul directly
   rescue:
     - name: Get Vault service address from Consul
+      become: false
       ansible.builtin.uri:
         url: "{{ lookup('env', 'CONSUL_HTTP_ADDR') }}/v1/catalog/service/vault"
         method: GET
         return_content: true
       register: vault_address
-    # - name: Debug vault_address
-    #   debug:
-    #     var: vault_address
+      delegate_to: localhost
     - name: Lookup Role ID
+      become: false
       ansible.builtin.uri:
         url: "http://{{ vault_address.json[0].Address }}:8200/v1/auth/{{ approle.mount }}/role/{{ approle.role }}/role-id"
-        dest: "{{ vault_config_dir }}/approle.json"
+        dest: "/tmp/approle.json"
         method: GET
         return_content: true
         status_code: [200]
